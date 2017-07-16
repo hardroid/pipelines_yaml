@@ -1,0 +1,46 @@
+pipelines:
+  app_android:
+    group: apps
+    materials:
+      repo:
+        git: git@github.com:hardroid/TestPipeline.git
+        branch: master
+    stages:
+      - pruebas:
+          jobs:
+            pruebas:
+              resources:
+                - android
+              artifacts:
+                - test:
+                    destination: jacoco-output/
+              tasks:
+                - exec:
+                    command: ./gradlew
+                    arguments:
+                      - testDebugUnitTest
+      - construccion:
+          jobs:
+            construccion:
+              resources:
+                - android
+              tasks:
+                - exec:
+                    command: ./gradlew
+                    arguments:
+                      - assemble
+      - playstore_alpha:
+          approval:
+            type: manual
+            roles:
+              - ops
+          jobs:
+            publicar_artefactos:
+              resources:
+                - android
+              tasks:
+                - exec:
+                    command: ./gradlew
+                    arguments:
+                      - assemble
+                      - publishApkRelease
